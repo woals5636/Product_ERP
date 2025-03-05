@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>제품 목록</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    /* 테이블 셀의 글자를 수평 및 수직으로 중앙 정렬 */
+    td, th {
+      text-align: center; /* 수평 정렬 */
+      vertical-align: middle; /* 수직 정렬 */
+    }
+
+    .product-link {
+      color: #007bff; /* 링크 색상 */
+      text-decoration: none; /* 밑줄 제거 */
+      cursor: pointer; /* 클릭 가능하게 */
+    }
+
+    .product-link:hover {
+      color: #0056b3; /* 호버 시 색상 변경 */
+      text-decoration: underline; /* 호버 시 밑줄 표시 */
+    }
+
+    .product-link:focus {
+      outline: none; /* 포커스 시 기본 스타일 제거 */
+    }
+  </style>
+</head>
+<body>
+<div class="container mt-4">
+  <h2 class="mb-4 text-center">제품 목록</h2>
+  <h3 class="text-center mb-4">Product</h3>
+
+  <a href="/categories" class="btn btn-primary align-items-right mb-3">카테고리 목록보기</a>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <!-- 제품 추가 버튼 -->
+    <a href="/products/add" class="btn btn-success">새로운 제품 추가</a>
+
+    <!-- 검색 -->
+    <form th:action="@{/products}" method="get" class="d-flex">
+      <div class="input-group">
+        <input type="text" class="form-control" name="keyword" placeholder="제품명 검색" th:value="${keyword}">
+        <button class="btn btn-primary" type="submit">검색</button>
+      </div>
+    </form>
+  </div>
+
+  <table class="table table-bordered table-hover">
+    <thead class="table-light">
+    <tr>
+      <th>제품 코드</th>
+      <th>제품명</th>
+      <th>제품 분류</th>
+      <th>생성 일자</th>
+      <th>제품 가격</th>
+      <th>운영 여부</th>
+      <th>생산 주소</th>
+      <th>제품 설명</th>
+      <th>제품 이미지</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="product : ${products.content}" th:classappend="${product.category.isDeleted ? 'd-none' : ''}">
+      <!-- 제품 코드 클릭 시 수정 페이지로 이동 -->
+      <td>
+        <a th:href="@{/products/edit/{productId}(productId=${product.productId})}" class="product-link">
+          <span th:text="${product.productCode}"></span>
+        </a>
+      </td>
+
+      <!-- 제품명 클릭 시 수정 페이지로 이동 -->
+      <td>
+        <a th:href="@{/products/edit/{productId}(productId=${product.productId})}" class="product-link">
+          <span th:text="${product.productName}"></span>
+        </a>
+      </td>
+
+      <td th:text="${product.category.categoryName}"></td>
+      <td th:text="${product.productionDate}"></td>
+      <td th:text="${#numbers.formatInteger(product.unitPrice, 3, 'COMMA')} + ' 원'"></td>
+      <td th:text="${product.isActive ? 'Y' : 'N'}"></td>
+      <td th:text="${product.productionAddress}"></td>
+      <td th:text="${product.productDescription}"></td>
+      <td>
+        <img th:if="${product.productImageUrl}" th:src="@{${product.productImageUrl}}" alt="제품 이미지" width="100" height="100">
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <!-- 제품이 없을 때 메시지 표시 -->
+  <div th:if="${#lists.isEmpty(products.content)}" class="text-center">
+    <p>제품이 존재하지 않습니다.</p>
+  </div>
+
+  <!-- 페이징 UI -->
+  <div class="d-flex justify-content-center" th:if="${not #lists.isEmpty(products.content)}">
+    <ul class="pagination">
+      <li class="page-item" th:classappend="${products.first} ? 'disabled'">
+        <a class="page-link" th:href="@{/products(page=0, keyword=${keyword})}">처음</a>
+      </li>
+      <li class="page-item" th:classappend="${products.first} ? 'disabled'">
+        <a class="page-link" th:href="@{/products(page=${products.number - 1}, keyword=${keyword})}">이전</a>
+      </li>
+
+      <li class="page-item" th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}" th:classappend="${i == products.number} ? 'active'">
+        <a class="page-link" th:href="@{/products(page=${i}, keyword=${keyword})}" th:text="${i + 1}"></a>
+      </li>
+
+      <li class="page-item" th:classappend="${products.last} ? 'disabled'">
+        <a class="page-link" th:href="@{/products(page=${products.number + 1}, keyword=${keyword})}">다음</a>
+      </li>
+      <li class="page-item" th:classappend="${products.last} ? 'disabled'">
+        <a class="page-link" th:href="@{/products(page=${products.totalPages - 1}, keyword=${keyword})}">마지막</a>
+      </li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
